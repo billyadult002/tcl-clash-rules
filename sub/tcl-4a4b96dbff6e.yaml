@@ -1,0 +1,252 @@
+# ============================================================
+#  TCL 电视专用 Clash 配置（WorkBuddy 生成）
+#  广告拦截：241K 域名，来自私有仓库 billyadult002/tcl-clash-rules
+#            GitHub Actions 每日自动更新，电视经节点拉取
+#  订阅：subs.txt（每行一条）
+#  ⚠️ 本文件含 GitHub token，请勿外发
+# ============================================================
+
+mixed-port: 7890
+allow-lan: false
+mode: rule
+log-level: info
+ipv6: false
+external-controller: 127.0.0.1:9090
+unified-delay: true
+tcp-concurrent: true
+find-process-mode: 'off'
+
+dns:
+  enable: true
+  ipv6: false
+  listen: 0.0.0.0:1053
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - '*.lan'
+    - '*.local'
+    - '+.msftconnecttest.com'
+    - '+.msftncsi.com'
+    - 'time.*.com'
+    - 'stun.*.*'
+    - '+.cibntv.net'
+    - '+.youku.com'
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  nameserver:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+  nameserver-policy:
+    '+.cibntv.net': [223.5.5.5, 119.29.29.29]
+    '+.youku.com': [223.5.5.5, 119.29.29.29]
+
+# ------------------------------------------------------------
+#  订阅
+# ------------------------------------------------------------
+proxy-providers:
+  sub1:
+    type: http
+    url: "https://103.118.41.196:38442/api/v1/client/subscribe?token=0cf86e73f8eac567cb69dde2358e1f28"
+    path: ./sub1.yaml
+    interval: 86400
+    header:
+      User-Agent:
+        - "clash.meta/v1.19.0"
+    exclude-filter: "官网|剩余|到期|流量|订阅|重置|套餐|过期|失联|客服|邀请|购买|续费|群组"
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      interval: 600
+  sub2:
+    type: http
+    url: "https://dasho.pqjc.site/api/v1/pq/1cc8c802318565b6effbc0e93079b2c4"
+    path: ./sub2.yaml
+    interval: 86400
+    header:
+      User-Agent:
+        - "clash.meta/v1.19.0"
+    exclude-filter: "官网|剩余|到期|流量|订阅|重置|套餐|过期|失联|客服|邀请|购买|续费|群组"
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      interval: 600
+  sub3:
+    type: http
+    url: "https://scyydsbgw.xm-pass.one/feed/1699ecde168e7e59f9f905e1d3aad346"
+    path: ./sub3.yaml
+    interval: 86400
+    header:
+      User-Agent:
+        - "clash.meta/v1.19.0"
+    exclude-filter: "官网|剩余|到期|流量|订阅|重置|套餐|过期|失联|客服|邀请|购买|续费|群组"
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      interval: 600
+
+proxy-groups:
+  - name: 🇭🇰 香港
+    type: select
+    use:
+      - sub1
+      - sub2
+      - sub3
+    filter: "(?i)香港|港|HK|Hong ?Kong|🇭🇰"
+
+  - name: 🇸🇬 新加坡
+    type: select
+    use:
+      - sub1
+      - sub2
+      - sub3
+    filter: "(?i)新加坡|狮城|SG|Singapore|🇸🇬"
+
+  - name: 🇯🇵 日本
+    type: select
+    use:
+      - sub1
+      - sub2
+      - sub3
+    filter: "(?i)日本|东京|大阪|JP|Japan|🇯🇵"
+
+  - name: 🇹🇼 台湾
+    type: select
+    use:
+      - sub1
+      - sub2
+      - sub3
+    filter: "(?i)台湾|台灣|TW|Taiwan|🇹🇼"
+
+  - name: 🇺🇸 美国
+    type: select
+    use:
+      - sub1
+      - sub2
+      - sub3
+    filter: "(?i)美国|美國|US|United ?States|洛杉矶|圣何塞|西雅图|纽约|🇺🇸"
+
+  - name: 🇺🇸 美国-Frontier
+    type: select
+    use:
+      - sub1
+      - sub2
+      - sub3
+    filter: "(?i)(美国|美國|\bUS\b|United ?States|洛杉矶|圣何塞|西雅图|纽约|达拉斯|硅谷|凤凰城|芝加哥|迈阿密|波特兰).*?(Frontier|家宽|住宅|动态|residential|原生)"
+
+  - name: 🤖 AI 服务
+    type: url-test
+    proxies:
+      - 🇺🇸 美国-Frontier
+      - 🇺🇸 美国
+    url: https://claude.ai/
+    interval: 300
+    tolerance: 100
+
+  - name: ⚙️ 规则拉取
+    type: url-test
+    use:
+      - sub1
+      - sub2
+      - sub3
+    url: https://www.gstatic.com/generate_204
+    interval: 600
+    tolerance: 50
+    lazy: true
+
+  - name: PROXY
+    type: select
+    proxies:
+      - 🇭🇰 香港
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇹🇼 台湾
+      - 🇺🇸 美国
+      - 🤖 AI 服务
+      - 🇺🇸 美国-Frontier
+      - ⚙️ 规则拉取
+      - DIRECT
+
+rule-providers:
+  adblock:
+    type: http
+    behavior: domain
+    format: yaml
+    url: "https://raw.githubusercontent.com/billyadult002/tcl-clash-rules/main/adblock.yaml"
+    path: ./adblock.yaml
+    interval: 86400
+    proxy: ⚙️ 规则拉取
+
+rules:
+# ---------- 局域网 / 私有地址直连（否则局域网设备会被代理走） ----------
+  - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
+  - IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
+  - DOMAIN-SUFFIX,lan,DIRECT
+  - DOMAIN-SUFFIX,local,DIRECT
+
+# ---------- 白名单：必须排在拦截规则之前 ----------
+  - DOMAIN-SUFFIX,cibntv.net,DIRECT
+  - DOMAIN-SUFFIX,cibn.cc,DIRECT
+  - DOMAIN-SUFFIX,youku.com,DIRECT
+  - DOMAIN-SUFFIX,tmdb.org,DIRECT
+  - DOMAIN-SUFFIX,themoviedb.org,DIRECT
+  - DOMAIN-SUFFIX,omdbapi.com,DIRECT
+
+# ---------- 广告 / 追踪拦截 ----------
+  - RULE-SET,adblock,REJECT
+  - GEOSITE,CATEGORY-ADS-ALL,REJECT
+  - GEOSITE,CATEGORY-CONSENT-MANAGEMENT,REJECT
+
+# ---------- Netflix → 香港 ----------
+  - DOMAIN-SUFFIX,netflix.com,🇭🇰 香港
+  - DOMAIN-SUFFIX,netflix.net,🇭🇰 香港
+  - DOMAIN-SUFFIX,nflxvideo.net,🇭🇰 香港
+  - DOMAIN-SUFFIX,nflximg.net,🇭🇰 香港
+  - DOMAIN-SUFFIX,nflxso.net,🇭🇰 香港
+  - DOMAIN-SUFFIX,nflxext.com,🇭🇰 香港
+  - DOMAIN-SUFFIX,fast.com,🇭🇰 香港
+
+# ---------- HBO MAX → 香港 ----------
+  - DOMAIN-SUFFIX,hbomax.com,🇭🇰 香港
+  - DOMAIN-SUFFIX,hbo.com,🇭🇰 香港
+  - DOMAIN-SUFFIX,max.com,🇭🇰 香港
+  - DOMAIN-SUFFIX,hbomaxcdn.com,🇭🇰 香港
+
+# ---------- Disney → 香港 ----------
+  - DOMAIN-SUFFIX,disneyplus.com,🇭🇰 香港
+  - DOMAIN-SUFFIX,disney-plus.net,🇭🇰 香港
+  - DOMAIN-SUFFIX,dssott.com,🇭🇰 香港
+  - DOMAIN-SUFFIX,bamgrid.com,🇭🇰 香港
+  - DOMAIN-SUFFIX,disneystreaming.com,🇭🇰 香港
+
+# ---------- Claude → 美国 Frontier ----------
+  - DOMAIN-SUFFIX,claude.ai,🤖 AI 服务
+  - DOMAIN-SUFFIX,anthropic.com,🤖 AI 服务
+
+# ---------- GPT / OpenAI → 美国 Frontier ----------
+  - DOMAIN-SUFFIX,openai.com,🤖 AI 服务
+  - DOMAIN-SUFFIX,chatgpt.com,🤖 AI 服务
+  - DOMAIN-SUFFIX,oaistatic.com,🤖 AI 服务
+  - DOMAIN-SUFFIX,oaiusercontent.com,🤖 AI 服务
+  - DOMAIN-SUFFIX,sora.com,🤖 AI 服务
+
+# ---------- 其他 AI → 美国 Frontier ----------
+  - DOMAIN-SUFFIX,perplexity.ai,🤖 AI 服务
+  - DOMAIN-SUFFIX,poe.com,🤖 AI 服务
+  - DOMAIN-SUFFIX,character.ai,🤖 AI 服务
+  - DOMAIN-SUFFIX,midjourney.com,🤖 AI 服务
+  - DOMAIN,gemini.google.com,🤖 AI 服务
+  - DOMAIN,bard.google.com,🤖 AI 服务
+  - DOMAIN,copilot.microsoft.com,🤖 AI 服务
+
+# ---------- xvideos → 香港 ----------
+  - DOMAIN-SUFFIX,xvideos.com,🇭🇰 香港
+  - DOMAIN-SUFFIX,xvideos.es,🇭🇰 香港
+  - DOMAIN-SUFFIX,xvideos-cdn.com,🇭🇰 香港
+
+# ---------- 分流 ----------
+  - GEOSITE,CN,DIRECT
+  - GEOIP,CN,DIRECT
+  - MATCH,PROXY

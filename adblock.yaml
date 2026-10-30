@@ -1,5 +1,5 @@
 # mihomo rule-provider, behavior: domain
-# 217heidai/adblockfilters adblockdns.txt 2026-10-29
+# source: 217heidai/adblockfilters (auto-updated)
 payload:
   - 0-02.net
   - 0-btc.com
